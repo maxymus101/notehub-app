@@ -21,9 +21,9 @@ export interface DeleteNote {
 const token = import.meta.env.VITE_NOTEHUB_TOKEN;
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASEURL,
-  timeout: 1000,
+  timeout: 5000,
   headers: {
-    "Content-type": "aplication/json",
+    "Content-type": "application/json",
     Authorization: `Bearer ${token}`,
   },
 });

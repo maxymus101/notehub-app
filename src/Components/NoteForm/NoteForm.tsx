@@ -5,12 +5,13 @@ import * as Yup from "yup";
 
 interface NoteFormProps {
   onSubmit: (inputData: PostNote | null) => void;
+  onClose: () => void;
 }
 
 const initialValues: PostNote = {
   title: "",
   content: "",
-  tag: "TODO",
+  tag: "Todo",
 };
 
 const SearchNoteSchema = Yup.object().shape({
@@ -21,7 +22,7 @@ const SearchNoteSchema = Yup.object().shape({
   content: Yup.string().required("No content found"),
 });
 
-export default function NoteForm({ onSubmit }: NoteFormProps) {
+export default function NoteForm({ onSubmit, onClose }: NoteFormProps) {
   const handleSubmit = (values: PostNote, actions: FormikHelpers<PostNote>) => {
     actions.resetForm();
     onSubmit(values);
@@ -65,7 +66,7 @@ export default function NoteForm({ onSubmit }: NoteFormProps) {
         </div>
 
         <div className={css.actions}>
-          <button type="button" className={css.cancelButton}>
+          <button type="button" onClick={onClose} className={css.cancelButton}>
             Cancel
           </button>
           <button type="submit" className={css.submitButton} disabled={false}>

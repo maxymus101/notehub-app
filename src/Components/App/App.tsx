@@ -68,7 +68,7 @@ export default function App() {
       </header>
       {isModalOpen && (
         <Modal onClose={handleModalClose}>
-          <NoteForm onSubmit={handleNoteAdd} />
+          <NoteForm onSubmit={handleNoteAdd} onClose={handleModalClose} />
         </Modal>
       )}
       {isLoading && <p>Loading notes...</p>}

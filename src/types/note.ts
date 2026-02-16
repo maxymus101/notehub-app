@@ -7,4 +7,4 @@ export interface Note {
   tag: NoteTag;
 }
 
-export type NoteTag = "Work" | "Meeting" | "Personal" | "Shopping" | "TODO";
+export type NoteTag = "Work" | "Meeting" | "Personal" | "Shopping" | "Todo";

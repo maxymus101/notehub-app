@@ -3,18 +3,21 @@ import css from "./NoteList.module.css";
 
 interface NoteListProps {
   notes: Note[];
+  onDelete: () => void;
 }
 
-export default function NoteList(notes: NoteListProps) {
+export default function NoteList({ notes, onDelete }: NoteListProps) {
   return (
     <ul className={css.list}>
-      {notes.notes.map((note) => (
+      {notes.map((note) => (
         <li key={note.id} className={css.listItem}>
           <h2 className={css.title}>{note.title}</h2>
           <p className={css.content}>{note.content}</p>
           <div className={css.footer}>
             <span className={css.tag}>{note.tag}</span>
-            <button className={css.button}>Delete</button>
+            <button className={css.button} onClick={onDelete}>
+              Delete
+            </button>
           </div>
         </li>
       ))}

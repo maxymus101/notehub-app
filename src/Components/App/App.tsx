@@ -16,6 +16,7 @@ import {
 import Pagination from "../Pagination/Pagination";
 import Modal from "../Modal/Modal";
 import NoteForm from "../NoteForm/NoteForm";
+import SearchBox from "../SearchBox/SearchBox";
 
 export default function App() {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -59,12 +60,15 @@ export default function App() {
     handleModalClose();
   };
 
+  const handleNoteDelete = (id: string) => {};
+
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
         <button className={css.button} onClick={handleModalOpen}>
           Create note +
         </button>
+        <SearchBox value={searchQuery} onChange={setSearchQuery} />
       </header>
       {isModalOpen && (
         <Modal onClose={handleModalClose}>
@@ -74,7 +78,7 @@ export default function App() {
       {isLoading && <p>Loading notes...</p>}
       {isError && <p>An error occurred: {error.message}</p>}
       {isSuccess && data && data.notes.length > 0 ? (
-        <NoteList notes={data?.notes} />
+        <NoteList notes={data?.notes} onDelete={handleNoteDelete} />
       ) : (
         <p>Sorry, no notes found by name "${searchQuery}"</p>
       )}

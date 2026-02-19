@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-query";
 import {
   createNote,
+  deleteNote,
   fetchNotes,
   type GetNotesResponse,
   type PostNote,
@@ -17,6 +18,7 @@ import Pagination from "../Pagination/Pagination";
 import Modal from "../Modal/Modal";
 import NoteForm from "../NoteForm/NoteForm";
 import SearchBox from "../SearchBox/SearchBox";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function App() {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -33,11 +35,18 @@ export default function App() {
       placeholderData: keepPreviousData,
     });
 
-  const mutation = useMutation({
+  const usePostMutation = useMutation({
     mutationFn: async (newNote: PostNote) => {
       const res = await createNote(newNote);
       return res;
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+    },
+  });
+
+  const useDeleteMutation = useMutation({
+    mutationFn: async (id: string) => deleteNote(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
     },
@@ -56,14 +65,21 @@ export default function App() {
     if (!formValues) return null;
 
     setNewNote(formValues);
-    mutation.mutate(formValues);
+    usePostMutation.mutate(formValues);
     handleModalClose();
+
+    if (newNote !== null) {
+      toast.success("Note added succesfully!");
+    }
   };
 
-  const handleNoteDelete = (id: string) => {};
+  const handleNoteDelete = (id: string) => {
+    useDeleteMutation.mutate(id);
+  };
 
   return (
     <div className={css.app}>
+      <Toaster />
       <header className={css.toolbar}>
         <button className={css.button} onClick={handleModalOpen}>
           Create note +
@@ -80,7 +96,7 @@ export default function App() {
       {isSuccess && data && data.notes.length > 0 ? (
         <NoteList notes={data?.notes} onDelete={handleNoteDelete} />
       ) : (
-        <p>Sorry, no notes found by name "${searchQuery}"</p>
+        <p>Sorry, no notes found by name "{searchQuery}"</p>
       )}
       <Pagination
         pageCount={totalPages}

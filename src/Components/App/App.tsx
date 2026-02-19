@@ -1,17 +1,10 @@
 import { useState } from "react";
 import NoteList from "../NoteList/NoteList";
 import css from "./App.module.css";
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createNote,
   deleteNote,
-  fetchNotes,
-  type GetNotesResponse,
   type PostNote,
 } from "../../services/noteService";
 import Pagination from "../Pagination/Pagination";
@@ -19,21 +12,19 @@ import Modal from "../Modal/Modal";
 import NoteForm from "../NoteForm/NoteForm";
 import SearchBox from "../SearchBox/SearchBox";
 import toast, { Toaster } from "react-hot-toast";
+import Loader from "../Loader/Loader";
+import ErrorMessage from "../ErrorMessage/ErrorMessage";
+import { useNotes } from "../../hooks/useNotes";
 
 export default function App() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [newNote, setNewNote] = useState<PostNote | null>(null);
+  const { data, error, isSuccess, isFetching, isLoading, isError, refetch } =
+    useNotes(searchQuery, currentPage);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   const queryClient = useQueryClient();
-
-  const { data, error, isLoading, isSuccess, isError } =
-    useQuery<GetNotesResponse>({
-      queryKey: ["notes", searchQuery, currentPage],
-      queryFn: () => fetchNotes(searchQuery, currentPage),
-      placeholderData: keepPreviousData,
-    });
 
   const usePostMutation = useMutation({
     mutationFn: async (newNote: PostNote) => {
@@ -42,6 +33,10 @@ export default function App() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
+      toast.success("Note added succesfully!");
+    },
+    onError: (error) => {
+      toast.error(`Failed to add note: ${error.message}`);
     },
   });
 
@@ -61,16 +56,17 @@ export default function App() {
     setIsModalOpen(false);
   };
 
+  const handleError = async () => {
+    setIsRetrying(true);
+    await refetch();
+    setIsRetrying(false);
+  };
+
   const handleNoteAdd = (formValues: PostNote | null) => {
     if (!formValues) return null;
 
-    setNewNote(formValues);
     usePostMutation.mutate(formValues);
     handleModalClose();
-
-    if (newNote !== null) {
-      toast.success("Note added succesfully!");
-    }
   };
 
   const handleNoteDelete = (id: string) => {
@@ -91,12 +87,22 @@ export default function App() {
           <NoteForm onSubmit={handleNoteAdd} onClose={handleModalClose} />
         </Modal>
       )}
-      {isLoading && <p>Loading notes...</p>}
-      {isError && <p>An error occurred: {error.message}</p>}
+      {isLoading && isFetching && <Loader />}
+      {isError && (
+        <ErrorMessage
+          message={error.message}
+          onClick={handleError}
+          isRetrying={isRetrying}
+        />
+      )}
       {isSuccess && data && data.notes.length > 0 ? (
         <NoteList notes={data?.notes} onDelete={handleNoteDelete} />
       ) : (
-        <p>Sorry, no notes found by name "{searchQuery}"</p>
+        <ErrorMessage
+          message="Sorry, no notes found"
+          onClick={handleError}
+          isRetrying={isRetrying}
+        />
       )}
       <Pagination
         pageCount={totalPages}

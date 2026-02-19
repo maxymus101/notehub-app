@@ -14,10 +14,6 @@ export interface PostNote {
   tag: NoteTag;
 }
 
-export interface DeleteNote {
-  id: string;
-}
-
 const token = import.meta.env.VITE_NOTEHUB_TOKEN;
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASEURL,
@@ -72,9 +68,9 @@ export async function createNote(newNote: PostNote): Promise<Note> {
 }
 
 // --Delete Note--
-export async function deleteNote(id: string): Promise<DeleteNote> {
+export async function deleteNote(id: string): Promise<Note> {
   try {
-    const res = await api.delete<DeleteNote>(`/note/${id}`);
+    const res = await api.delete<Note>(`/notes/${id}`);
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

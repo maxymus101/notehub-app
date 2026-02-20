@@ -1,20 +1,17 @@
 import { useState } from "react";
 import NoteList from "../NoteList/NoteList";
 import css from "./App.module.css";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  createNote,
-  deleteNote,
-  type PostNote,
-} from "../../services/noteService";
+import { type PostNote } from "../../services/noteService";
 import Pagination from "../Pagination/Pagination";
 import Modal from "../Modal/Modal";
 import NoteForm from "../NoteForm/NoteForm";
 import SearchBox from "../SearchBox/SearchBox";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import Loader from "../Loader/Loader";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
 import { useNotes } from "../../hooks/useNotes";
+import { useDeleteNote } from "../../hooks/useDeleteNote";
+import { usePostNote } from "../../hooks/usePostNote";
 
 export default function App() {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -24,28 +21,9 @@ export default function App() {
     useNotes(searchQuery, currentPage);
   const [isRetrying, setIsRetrying] = useState(false);
 
-  const queryClient = useQueryClient();
+  const postNoteMutation = usePostNote();
 
-  const usePostMutation = useMutation({
-    mutationFn: async (newNote: PostNote) => {
-      const res = await createNote(newNote);
-      return res;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-      toast.success("Note added succesfully!");
-    },
-    onError: (error) => {
-      toast.error(`Failed to add note: ${error.message}`);
-    },
-  });
-
-  const useDeleteMutation = useMutation({
-    mutationFn: async (id: string) => deleteNote(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-    },
-  });
+  const deleteNoteMutation = useDeleteNote();
 
   const totalPages = data?.totalPages ?? 0;
 
@@ -65,12 +43,12 @@ export default function App() {
   const handleNoteAdd = (formValues: PostNote | null) => {
     if (!formValues) return null;
 
-    usePostMutation.mutate(formValues);
+    postNoteMutation.mutate(formValues);
     handleModalClose();
   };
 
   const handleNoteDelete = (id: string) => {
-    useDeleteMutation.mutate(id);
+    deleteNoteMutation.mutate(id);
   };
 
   return (
